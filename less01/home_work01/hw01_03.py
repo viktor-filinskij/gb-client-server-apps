@@ -22,7 +22,6 @@ def main():
     # выводим на экран слова «attribute», «класс», «функция», «type»
     for word in ['attribute', 'класс', 'функция', 'type']:
         print(f"Word {word} as byte sequence: {word.encode('utf-8', 'strict')}")
-        # print("Word {} as byte sequence: {}".format(word, word.encode('utf-8', 'strict')))
 
     # выводим на экран слова «attribute», «класс», «функция», «type»
     # определённые ранее как тип byte
