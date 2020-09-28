@@ -18,10 +18,14 @@ def main():
     При выводе на экран, слова состоящие из символов латинского алфавита
     отображаются не как коды UTF-8 символов а просто как латинские символы.
     """
+    # преобразуем заданные слова в байт-последовательность
+    # выводим на экран слова «attribute», «класс», «функция», «type»
     for word in ['attribute', 'класс', 'функция', 'type']:
         print(f"Word {word} as byte sequence: {word.encode('utf-8', 'strict')}")
         # print("Word {} as byte sequence: {}".format(word, word.encode('utf-8', 'strict')))
 
+    # выводим на экран слова «attribute», «класс», «функция», «type»
+    # определённые ранее как тип byte
     for var in [WORD1, WORD2, WORD3, WORD4]:
         print(f"Byte sequence: \"{var.decode('utf-8', 'strict')}\", "
               f"type: {type(var)}, "
