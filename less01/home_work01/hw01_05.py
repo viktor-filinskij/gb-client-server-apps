@@ -12,20 +12,22 @@ from sys import platform
 COMMAND = 'ping'
 destination = ['yandex.ru', 'youtube.com']
 
-# by default on nix platforms ping runs infinite, so need to limit echoes
-# but on win platforms ping use different args :
-if platform == "win32":
-    COMMAND_PARAMS = '-n 4'
-else:
-    COMMAND_PARAMS = '-c 4'
-
 
 def main():
+
+    # by default on nix platforms ping runs infinite, so need to limit echoes
+    # but on win platforms ping use different args :
     for target in destination:
-        completed_process = subprocess.run([COMMAND, COMMAND_PARAMS, target],
-                                           check=True,
-                                           encoding='utf-8',
-                                           capture_output=True).stdout
+        if platform == "win32":
+            completed_process = subprocess.run([COMMAND, '-n', '4', target],
+                                               check=True,
+                                               encoding='utf-8',
+                                               capture_output=True).stdout
+        else:
+            completed_process = subprocess.run([COMMAND, '-c', '4', target],
+                                               check=True,
+                                               encoding='utf-8',
+                                               capture_output=True).stdout
         print(completed_process)
 
 
