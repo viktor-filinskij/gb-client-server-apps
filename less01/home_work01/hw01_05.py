@@ -16,7 +16,7 @@ destination = ['yandex.ru', 'youtube.com']
 def main():
 
     # by default on nix platforms ping runs infinite, so need to limit echoes
-    # but on win platforms ping use different args :
+    # but on win32 platforms ping use different args :
     for target in destination:
         if platform == "win32":
             completed_process = subprocess.run([COMMAND, '-n', '4', target],
