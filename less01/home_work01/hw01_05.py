@@ -6,10 +6,18 @@ __author__ = 'Viktor Filinskij'
 
 import subprocess
 
+from sys import platform
+
 
 COMMAND = 'ping'
-COMMAND_PARAMS = '-c 4'
 destination = ['yandex.ru', 'youtube.com']
+
+# by default on nix platforms ping runs infinite, so need to limit echoes
+# but on win platforms ping use different args :
+if platform == "win32":
+    COMMAND_PARAMS = '-n 4'
+else:
+    COMMAND_PARAMS = '-c 4'
 
 
 def main():
