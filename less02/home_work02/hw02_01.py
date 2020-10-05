@@ -56,7 +56,7 @@ def get_data(*args):
         return detector.result.get('encoding')
 
     for pattern in args[0]:
-
+        # we extend basic pattern with ":" and following whitespaces
         pattern += r':\s*'
 
         for file in args[1]:
