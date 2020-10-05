@@ -31,7 +31,7 @@ from chardet.universaldetector import UniversalDetector
 
 patterns = ['Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
 file_list = ['info_1.txt', 'info_2.txt', 'info_3.txt']
-ENC = "utf-8"
+# ENC = "utf-8"
 
 
 def get_data(*args):
@@ -57,19 +57,19 @@ def get_data(*args):
 
     for pattern in args[0]:
 
-        pattern += '.*'
+        # pattern += '[:\s]'
 
         for file in args[1]:
             with open(os.path.join(os.getcwd(), file), 'r',
                       encoding=check_enc(file)) as f_n:
                 for line in f_n:
                     # configure patterns to search for
-                    patt = re.compile(pattern)
+                    patt = re.compile(pattern + r':\s*')
                     # in each file line
                     match = patt.match(line)
 
                     if match:
-                        print('Match found: ', match.group())
+                        print(f"Match found: {line[match.end():]}")
 
 
 def main():
