@@ -57,14 +57,14 @@ def get_data(*args):
 
     for pattern in args[0]:
 
-        # pattern += '[:\s]'
+        pattern += r':\s*'
 
         for file in args[1]:
             with open(os.path.join(os.getcwd(), file), 'r',
                       encoding=check_enc(file)) as f_n:
                 for line in f_n:
                     # configure patterns to search for
-                    patt = re.compile(pattern + r':\s*')
+                    patt = re.compile(pattern)
                     # in each file line
                     match = patt.match(line)
 
