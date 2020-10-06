@@ -13,7 +13,7 @@ __author__ = 'Viktor Filinskij'
 # Значения каждого параметра поместить в соответствующий список.
 # Должно получиться четыре списка — например, os_prod_list, os_name_list,
 # os_code_list, os_type_list.
-# В этой же функции создать главный список для # хранения данных отчета — например,
+# В этой же функции создать главный список для хранения данных отчета — например,
 # main_data — и поместить в него названия столбцов отчета в виде списка:
 # «Изготовитель системы», «Название ОС», «Код продукта», «Тип системы».
 # Значения для этих столбцов также оформить в виде списка и поместить
@@ -39,7 +39,7 @@ def get_data(*args):
     os_name_list = []
     os_code_list = []
     os_type_list = []
-    main_data = [os_prod_list, os_name_list, os_code_list, os_type_list]
+    main_data = [args[0]]
 
     def check_enc(filename):
         detector = UniversalDetector()
@@ -74,13 +74,29 @@ def get_data(*args):
                         # print(f"Match found: {line[match.end():]}")
                         result.append(match.group(1))
 
-        print(f"{result}")
+        if keyword == 'Изготовитель системы':
+            os_prod_list.append(result)
+            main_data.extend(os_prod_list)
+        elif keyword == 'Название ОС':
+            os_name_list.append(result)
+            main_data.extend(os_name_list)
+        elif keyword == 'Код продукта':
+            os_code_list.append(result)
+            main_data.extend(os_code_list)
+        elif keyword == 'Тип системы':
+            os_type_list.append(result)
+            main_data.extend(os_type_list)
+
+    return main_data
 
 
+def write_to_csv():
+    pass
 
 
 def main():
-    get_data(patterns, file_list)
+    main_data = get_data(patterns, file_list)
+    print(main_data)
 
 
 if __name__ == '__main__':
