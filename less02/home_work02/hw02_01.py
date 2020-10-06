@@ -25,6 +25,7 @@ __author__ = 'Viktor Filinskij'
 
 import os
 import re
+import csv
 
 from chardet.universaldetector import UniversalDetector
 
@@ -85,22 +86,28 @@ def get_data(*args):
             os_type_list.append(result)
             main_data.extend(os_type_list)
 
-    return main_data
-
-
-def write_to_csv():
-    pass
-
-
-def main():
-    main_data = get_data(patterns, file_list)
-    print(main_data)
-
     # We write header and column values as "list" into "main_data" file
     with open(os.path.join(os.getcwd(), MAIN_DATA_FILE),
               'w', encoding="utf-8") as f_n:
         for items in main_data:
             print(f"{items}", file=f_n)
+
+    return main_data
+
+
+def write_to_csv(csv_file_name):
+    main_data = get_data(patterns, file_list)
+
+    with open(os.path.join(os.getcwd(), csv_file_name),
+              'w', encoding='utf-8') as csv_file:
+        csv_file_writer = csv.writer(csv_file)
+
+        for record in main_data:
+            csv_file_writer.writerow(record)
+
+
+def main():
+    write_to_csv('main_data.csv')
 
 
 if __name__ == '__main__':
