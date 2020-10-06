@@ -74,17 +74,31 @@ def get_data(*args):
                         result.append(match.group(1))
         # store found rows into separate list, and update main_data list
         if keyword == 'Изготовитель системы':
-            os_prod_list.append(result)
-            main_data.extend(os_prod_list)
+            os_prod_list.extend(result)
+        # main_data.extend(os_prod_list)
         elif keyword == 'Название ОС':
-            os_name_list.append(result)
-            main_data.extend(os_name_list)
+            os_name_list.extend(result)
+        # main_data.extend(os_name_list)
         elif keyword == 'Код продукта':
-            os_code_list.append(result)
-            main_data.extend(os_code_list)
+            os_code_list.extend(result)
+        # main_data.extend(os_code_list)
         elif keyword == 'Тип системы':
-            os_type_list.append(result)
-            main_data.extend(os_type_list)
+            os_type_list.extend(result)
+        # main_data.extend(os_type_list)
+
+    row = []
+    rows = []
+
+    # organize data into columns:
+    for count in range(0, len(os_prod_list)):
+        row.append(os_prod_list[count])
+        row.append(os_name_list[count])
+        row.append(os_code_list[count])
+        row.append(os_type_list[count])
+        rows.append(row.copy())
+        row.clear()
+
+    main_data.extend(rows)
 
     # We write header and column values as "list" into "main_data" file
     with open(os.path.join(os.getcwd(), MAIN_DATA_FILE),
@@ -98,8 +112,9 @@ def get_data(*args):
 def write_to_csv(csv_file_name):
     main_data = get_data(patterns, file_list)
 
+    # here new line param will skip blank lines in csv file when opened on win32
     with open(os.path.join(os.getcwd(), csv_file_name),
-              'w', encoding='utf-8') as csv_file:
+              'w', encoding='utf-8', newline='') as csv_file:
         csv_file_writer = csv.writer(csv_file)
 
         for record in main_data:
@@ -107,6 +122,7 @@ def write_to_csv(csv_file_name):
 
 
 def main():
+    # print(get_data(patterns, file_list))
     write_to_csv('main_data.csv')
 
 
