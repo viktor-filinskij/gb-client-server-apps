@@ -31,6 +31,7 @@ from chardet.universaldetector import UniversalDetector
 
 patterns = ['Изготовитель системы', 'Название ОС', 'Код продукта', 'Тип системы']
 file_list = ['info_1.txt', 'info_2.txt', 'info_3.txt']
+MAIN_DATA_FILE = 'main_data'
 # ENC = "utf-8"
 
 
@@ -54,9 +55,6 @@ def get_data(*args):
 
         return detector.result.get('encoding')
 
-    def get_pattern(pat, filename):
-        pass
-
     for keyword in args[0]:
         result = []
         # we extend basic pattern with ":" and following whitespaces
@@ -68,12 +66,12 @@ def get_data(*args):
             with open(os.path.join(os.getcwd(), file), 'r',
                       encoding=check_enc(file)) as f_n:
                 for line in f_n:
-                    # in each file line
+                    # in each file check each line for pattern match
                     match = patt.match(line)
                     if match:
                         # print(f"Match found: {line[match.end():]}")
                         result.append(match.group(1))
-
+        # store found rows into separate list, and update main_data list
         if keyword == 'Изготовитель системы':
             os_prod_list.append(result)
             main_data.extend(os_prod_list)
@@ -97,6 +95,12 @@ def write_to_csv():
 def main():
     main_data = get_data(patterns, file_list)
     print(main_data)
+
+    # We write header and column values as "list" into "main_data" file
+    with open(os.path.join(os.getcwd(), MAIN_DATA_FILE),
+              'w', encoding="utf-8") as f_n:
+        for items in main_data:
+            print(f"{items}", file=f_n)
 
 
 if __name__ == '__main__':
