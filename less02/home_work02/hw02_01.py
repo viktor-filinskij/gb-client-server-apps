@@ -35,12 +35,11 @@ file_list = ['info_1.txt', 'info_2.txt', 'info_3.txt']
 
 
 def get_data(*args):
-    # os_prod_list = []
-    # os_name_list = []
-    # os_code_list = []
-    # os_type_list = []
-    #
-    # main_data = [os_prod_list, os_name_list, os_code_list, os_type_list]
+    os_prod_list = []
+    os_name_list = []
+    os_code_list = []
+    os_type_list = []
+    main_data = [os_prod_list, os_name_list, os_code_list, os_type_list]
 
     def check_enc(filename):
         detector = UniversalDetector()
@@ -55,21 +54,29 @@ def get_data(*args):
 
         return detector.result.get('encoding')
 
-    for pattern in args[0]:
+    def get_pattern(pat, filename):
+        pass
+
+    for keyword in args[0]:
+        result = []
         # we extend basic pattern with ":" and following whitespaces
-        pattern += r':\s*'
+        pattern = keyword + r':\s*(.*)'
+        # configure patterns to search for
+        patt = re.compile(pattern)
 
         for file in args[1]:
             with open(os.path.join(os.getcwd(), file), 'r',
                       encoding=check_enc(file)) as f_n:
                 for line in f_n:
-                    # configure patterns to search for
-                    patt = re.compile(pattern)
                     # in each file line
                     match = patt.match(line)
-
                     if match:
-                        print(f"Match found: {line[match.end():]}")
+                        # print(f"Match found: {line[match.end():]}")
+                        result.append(match.group(1))
+
+        print(f"{result}")
+
+
 
 
 def main():
