@@ -62,7 +62,7 @@ def write_order_to_json(item, quantity, price, buyer, date):
     data = read_data(DATA_STORE)  # get current orders dict form existing orders file
     orders = data.get("orders")   # get current order list from orders dictionary
 
-    orders.append(order)          # append new order, as new list element of current order list
+    orders.append(order)          # append order list, with new order
     data.update(orders=orders)    # update dictionary with new order list
 
     with open(os.path.join(os.getcwd(), DATA_STORE), 'r+', encoding='utf-8') as orders_file:
