@@ -42,8 +42,37 @@ __author__ = 'Viktor Filinskij'
 а потом сохранять все в файл
 """
 
+import json
+import os
+
+
+data_store = 'orders.json'
+
+
+def read_data(file):
+    with open(os.path.join(os.getcwd(), data_store), 'r', encoding='utf-8') as orders_file:
+        current_data = json.load(orders_file)
+
+    return current_data
+
+
+def write_order_to_json(item, quantity, price, buyer, date):
+    order = dict(item=item, quantity=quantity, price=price, buyer=buyer, date=date)
+
+    data = read_data(data_store)  # dict
+    orders = data.get("orders")   # get current orders list
+
+    orders.append(order)          # append new order, as new list element of current order list
+    data.update(orders=orders)    # update dictionary with new order list
+
+    with open(os.path.join(os.getcwd(), data_store), 'r+', encoding='utf-8') as orders_file:
+        json.dump(data, orders_file, indent=4, sort_keys=True)
+
+
 def main():
-    pass
+    write_order_to_json('репка', 1.200, 8.50, 'Ольга', '2020-10-07' )
+    write_order_to_json('лук', 1.46, 7.20, 'Maksim', '2020-10-07' )
+    write_order_to_json('keyboard', 1, 299.99, 'Viktor', '2020-10-07' )
 
 
 if __name__ == '__main__':
