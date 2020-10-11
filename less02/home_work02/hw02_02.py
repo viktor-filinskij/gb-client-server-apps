@@ -66,7 +66,7 @@ def write_order_to_json(item, quantity, price, buyer, date):
     data.update(orders=orders)    # update dictionary with new order list
 
     with open(os.path.join(os.getcwd(), DATA_STORE), 'r+', encoding='utf-8') as orders_file:
-        json.dump(data, orders_file, indent=4, sort_keys=True)
+        json.dump(data, orders_file, indent=4, sort_keys=True, ensure_ascii=False)
 
 
 def main():
