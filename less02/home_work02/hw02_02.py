@@ -50,7 +50,7 @@ DATA_STORE = 'orders.json'
 
 
 def read_data(file):
-    with open(os.path.join(os.getcwd(), DATA_STORE), 'r', encoding='utf-8') as orders_file:
+    with open(os.path.join(os.getcwd(), file), 'r', encoding='utf-8') as orders_file:
         current_data = json.load(orders_file)
 
     return current_data
