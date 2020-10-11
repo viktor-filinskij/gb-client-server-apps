@@ -14,27 +14,41 @@ port — tcp-порт на сервере, по умолчанию 7777.
 -a <addr> — IP-адрес для прослушивания (по умолчанию слушает все доступные адреса).
 """
 
-
+import getopt, sys
 import socket
 import time
 
 
-#
 bind_host = socket.gethostname()
 bind_port = 7777
 
 
-# create an INET, STREAMing socket
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def main(argv):
 
-# by default bind the socket to a public host, and a default port
-server_socket.bind((bind_host, bind_port))
+    # check if script started with parameters
+    if argv:
+        try:
+            opts, args = getopt.getopt(argv, "ha:p:",["address=", "port="])
+        except getopt.GetoptError:
+            print(f'Starting server with default values')
+            # sys.exit(2)
+        for opt, arg in opts:
+            if opt == '-h':
+                print('test.py -a <listen_address> -p <listen_port>')
+            elif opt in ("-a", "--address"):
+                bind_host == arg
+            elif opt in ("-p", "--port"):
+                bind_port == arg
 
-# become a server socket
-server_socket.listen(5)
+    # create an INET, STREAMing socket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    # by default bind the socket to a public host, and a default port
+    server_socket.bind((bind_host, bind_port))
 
-def main():
+    # become a server socket
+    server_socket.listen(5)
+
     while True:
         # accept connections from outside
         (client_socket, address) = server_socket.accept()
