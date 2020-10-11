@@ -65,6 +65,8 @@ def write_order_to_json(item, quantity, price, buyer, date):
     orders.append(order)          # append order list, with new order
     data.update(orders=orders)    # update dictionary with new order list
 
+    # we will use ensure_ascii=False so cyrillic laters would be writen to file as letter,
+    # and not as an utf8 code points (\uXXXX)
     with open(os.path.join(os.getcwd(), DATA_STORE), 'r+', encoding='utf-8') as orders_file:
         json.dump(data, orders_file, indent=4, sort_keys=True, ensure_ascii=False)
 
