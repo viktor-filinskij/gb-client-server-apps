@@ -21,25 +21,29 @@ import sys
 import json
 import socket
 import time
+import argparse
 
 
-from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, ACCOUNT_AUTH_STRING, \
+from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME,\
+    ACCOUNT_AUTH_STRING, TYPE, \
     RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT
 from lib.utils import get_message, send_message
 
 
 def create_presence(account_name='Guest'):
-    '''
+    """
     Функция генерирует запрос о присутствии клиента
     :param account_name:
     :return:
-    '''
+    """
     # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
     out = {
         ACTION: PRESENCE,
         TIME: time.time(),
+        TYPE: "status",
         USER: {
-            ACCOUNT_NAME: account_name
+            ACCOUNT_NAME: account_name,
+            TYPE: 'Yep, I am here!'
         }
     }
     return out
@@ -64,24 +68,26 @@ def authenticate(account_name, account_auth_string):
 
 
 def process_ans(message):
-    '''
+    """
     Функция разбирает ответ сервера
     :param message:
     :return:
-    '''
+    """
     if RESPONSE in message:
-        if message[RESPONSE] == 200:
-            if message[ERROR]:
-                return f'200 : {message[ERROR]}'
-            else:
-                return '200: OK'
-        return f'400 : {message[ERROR]}'
+        # if message[RESPONSE] == 200:
+        #     if message[ERROR]:
+        #         return f'200 : {message[ERROR]}'
+        #     else:
+        #         return '200: OK'
+        return f'{message[RESPONSE]} : {message[ERROR]}'
     raise ValueError
 
 
 def main():
-    '''Загружаем параметы коммандной строки'''
-    # client.py 192.168.1.2 8079
+    """
+    Загружаем параметы коммандной строки
+    client.py 192.168.1.2 8079
+    """
     try:
         server_address = sys.argv[1]
         server_port = int(sys.argv[2])
@@ -94,16 +100,39 @@ def main():
         print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
         sys.exit(1)
 
-    # Инициализация сокета и обмен
+    # parser = argparse.ArgumentParser(description='Bind to some socket.')
+    # parser.add_argument('-p', default=DEFAULT_PORT, type=int)
+    # parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, type=str)
+    # server_port = (parser.parse_args()).p
+    # server_address = (parser.parse_args()).a
 
+    # Инициализация сокета и обмен
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     transport.connect((server_address, server_port))
-    # message_to_server = create_presence()
-    message_to_server = authenticate('C0deMaver1ck', 'CorrectHorseBatterStaple')
+
+    """
+    To receive data from server we will accept messages in while loop
+    """
+
+    # while True:
+
+    """
+    As guest we can announce our presence, because no auth as guest required
+    As registered user we, will get 401 error and will have to authenticate.  
+    """
+    message_to_server = create_presence()
     send_message(transport, message_to_server)
+
+    # message_to_server = create_presence()
+    # message_to_server = create_presence('C0deMaver1ck')
+    # message_to_server = authenticate('C0deMaver1ck', 'CorrectHorseBatterStaple')
+    message_to_server = authenticate(input("Provide Username: "), input("Provide password: "))
+    send_message(transport, message_to_server)
+
     try:
         answer = process_ans(get_message(transport))
         print(answer)
+        print(type(answer))
     except (ValueError, json.JSONDecodeError):
         print('Не удалось декодировать сообщение сервера.')
 
