@@ -120,21 +120,39 @@ def main():
     As guest we can announce our presence, because no auth as guest required
     As registered user we, will get 401 error and will have to authenticate.  
     """
+    # message_to_server = create_presence()
+    # send_message(transport, message_to_server)
+
     message_to_server = create_presence()
     send_message(transport, message_to_server)
-
-    # message_to_server = create_presence()
-    # message_to_server = create_presence('C0deMaver1ck')
-    # message_to_server = authenticate('C0deMaver1ck', 'CorrectHorseBatterStaple')
-    message_to_server = authenticate(input("Provide Username: "), input("Provide password: "))
-    send_message(transport, message_to_server)
-
     try:
         answer = process_ans(get_message(transport))
         print(answer)
         print(type(answer))
     except (ValueError, json.JSONDecodeError):
         print('Не удалось декодировать сообщение сервера.')
+
+    # message_to_server = create_presence('C0deMaver1ck')
+    # send_message(transport, message_to_server)
+    # # message_to_server = authenticate('C0deMaver1ck', 'CorrectHorseBatterStaple')
+    # try:
+    #     answer = process_ans(get_message(transport))
+    #     print(answer)
+    #     print(type(answer))
+    # except (ValueError, json.JSONDecodeError):
+    #     print('Не удалось декодировать сообщение сервера.')
+    #
+    # if '401' in answer:
+    #     message_to_server = authenticate('C0deMaver1ck', 'CorrectHorseBatterStaple')
+    #     # message_to_server = authenticate(input("Provide Username: "), input("Provide password: "))
+    #     send_message(transport, message_to_server)
+    #     try:
+    #         answer = process_ans(get_message(transport))
+    #         print(answer)
+    #         print(type(answer))
+    #     except (ValueError, json.JSONDecodeError):
+    #         print('Не удалось декодировать сообщение сервера.')
+
 
 
 if __name__ == '__main__':

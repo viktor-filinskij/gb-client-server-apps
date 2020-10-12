@@ -161,6 +161,8 @@ def main(*argv):
     # Готовим сокет
 
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # transport.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     transport.bind((listen_address, listen_port))
 
     # Слушаем порт
@@ -177,6 +179,10 @@ def main(*argv):
             # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
             response = process_client_message(message_from_cient)
             send_message(client, response)
+
+            """
+            If we want to continue to deal with clients we have to keep socket (communication endpoint) open
+            """
             client.close()
         except (ValueError, json.JSONDecodeError):
             print('Принято некорретное сообщение от клиента.')
