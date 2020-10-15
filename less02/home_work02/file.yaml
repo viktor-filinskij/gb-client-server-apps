@@ -1,0 +1,17 @@
+my_dict:
+  key1: 8364
+  key2: 208
+  key3: 65
+my_int: 1
+my_list:
+  - one
+  - '1'
+  - - '1.1'
+  - - - 1.1.1
+    - - i am string
+  - two
+  - '2'
+  - - '2.1'
+    - '2.2'
+  - three
+  - Checking-UTF8: Кириллица
