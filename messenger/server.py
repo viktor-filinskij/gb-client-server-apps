@@ -76,8 +76,8 @@ def process_client_message(message):
     if check_msg_has_required_fields(message):
         if message[ACTION] in ['presence', 'authenticate']:
             pass
-    else:
-        return {RESPONSE: 400, ERROR: 'Bad Request'}
+        else:
+            return {RESPONSE: 400, ERROR: 'Bad Request'}
 
     if message[ACTION] == PRESENCE:
         if message[USER][ACCOUNT_NAME] == 'Guest':

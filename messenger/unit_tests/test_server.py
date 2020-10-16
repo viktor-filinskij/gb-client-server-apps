@@ -78,9 +78,7 @@ class TestServer(unittest.TestCase):
     # """
     def test_wrong_action(self):
         """Ошибка если неизвестное действие"""
-        self.assertEqual(process_client_message(
-            {ACTION: 'Wrong', TIME: '1.1', USER: {ACCOUNT_NAME: 'Guest'}}
-            ), self.err_dict)
+        self.assertEqual(process_client_message({ACTION: 'Wrong', TIME: '1.1', USER: {ACCOUNT_NAME: 'Guest'}}), self.err_dict)
 
     def test_no_time(self):
         """Ошибка, если  запрос не содержит штампа времени"""
