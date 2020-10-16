@@ -78,6 +78,8 @@ def process_client_message(message):
             pass
         else:
             return {RESPONSE: 400, ERROR: 'Bad Request'}
+    else:
+        return {RESPONSE: 400, ERROR: 'Bad Request'}
 
     if message[ACTION] == PRESENCE:
         if message[USER][ACCOUNT_NAME] == 'Guest':
