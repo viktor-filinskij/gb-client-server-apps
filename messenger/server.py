@@ -37,28 +37,29 @@ def check_account(account_name, account_pass):
                       {'user_name': 'C0deMaver1ck','user_password': 'CorrectHorseBatteryStaple'}]
 
     for record in valid_accounts:
-        print(record)
-        for user_name, user_password in record.items():
-            print(user_name, user_password)
-            if account_name == user_name and account_pass == user_password:
-                return True
-            else:
-                return 'Invalid Account'
+        # print(record)
+        # for user_name, user_password in record.values():
+            # print(user_name, user_password)
+            # if account_name == user_name and account_pass == user_password:
+        if account_name == record.get('user_name') and account_pass == record.get('user_password'):
+            return True
+
+    return 'Invalid Account'
 
 
 def check_msg_has_required_fields(msg):
 
     required_keys = [ACTION, TIME, USER]
 
-    msg_valid = True
+    msg_format_valid = True
 
     for key in required_keys:
         if key in msg.keys():
             pass
         else:
-            msg_valid = False
+            msg_format_valid = False
 
-    return msg_valid
+    return msg_format_valid
 
 def process_client_message(message):
     """
@@ -73,12 +74,12 @@ def process_client_message(message):
     # probably need to create a separate function to check message
     # for presence of required fields
     if check_msg_has_required_fields(message):
-        pass
+        if message[ACTION] in ['presence', 'authenticate']:
+            pass
+        else:
+            return {RESPONSE: 400, ERROR: 'Bad Request'}
     else:
-        return {
-            RESPONSE: 400,
-            ERROR: 'Bad Request'
-        }
+        return {RESPONSE: 400, ERROR: 'Bad Request'}
 
     if message[ACTION] == PRESENCE:
         if message[USER][ACCOUNT_NAME] == 'Guest':
