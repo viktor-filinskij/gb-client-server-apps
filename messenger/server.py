@@ -7,6 +7,8 @@ import socket
 # import getopt
 import argparse
 import json
+import logging
+import log.server_log_config
 
 
 from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOUNT_AUTH_STRING, \
@@ -14,6 +16,8 @@ from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOU
 
 from lib.utils import get_message, send_message
 
+
+LOG = logging.getLogger('server.main')
 
 """
 1. Реализовать простое клиент-серверное взаимодействие по протоколу JIM (JSON instant messaging):

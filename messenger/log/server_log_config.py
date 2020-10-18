@@ -11,16 +11,23 @@ import os
 
 from logging.handlers import TimedRotatingFileHandler
 # Создаём объект-логгер с именем app.main
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger('server.main')
 
 # Создаём объект форматирования:
-FORMATTER = logging.Formatter(f"%(asctime)s - %(levelname)s - {LOG.name} - %(message)s ")
+FORMATTER = logging.Formatter(f"%(asctime)s - %(levelname)s - %(filename)s - %(message)s ")
+
+
+PATH = os.path.dirname(os.path.abspath(__file__))
+PATH = os.path.join(PATH, 'client.log')
+
+# Path to LOG_FILE, based on os assuming that
+# logs directory are in same directory lvl as scripts
+LOG_FILE = os.path.dirname(os.path.abspath(__file__))
 
 if os.name == 'posix':
-    LOG_FILE = os.path.join(os.getcwd(), f"../logs/{LOG.name}.log")
+    LOG_FILE = os.path.join(LOG_FILE, f"../logs/{LOG.name}.log")
 elif os.name == 'nt':
-    LOG_FILE = os.path.join(os.getcwd(), f"..\\logs\\{LOG.name}.log")
-
+    LOG_FILE = os.path.join(LOG_FILE, f"..\\logs\\{LOG.name}.log")
 
 # Создаём файловый обработчик логгирования (можно задать кодировку):
 FILE_HANDLER = TimedRotatingFileHandler(LOG_FILE, when='D', interval=1,
@@ -40,10 +47,3 @@ if __name__ == '__main__':
     LOG.addHandler(STREAM_HANDLER)
     # В логгирование передаем имя текущей функции и имя вызвавшей функции
     LOG.debug('Отладочное сообщение')
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

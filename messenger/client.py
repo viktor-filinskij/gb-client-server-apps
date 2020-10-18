@@ -22,7 +22,8 @@ import json
 import socket
 import time
 import argparse
-
+import logging
+import log.client_log_config
 
 from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME,\
     ACCOUNT_AUTH_STRING, TYPE, \
