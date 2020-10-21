@@ -7,6 +7,8 @@ import socket
 # import getopt
 import argparse
 import json
+import logging
+import log.server_log_config
 
 
 from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOUNT_AUTH_STRING, \
@@ -14,6 +16,21 @@ from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOU
 
 from lib.utils import get_message, send_message
 
+
+SERVER_LOGGER = logging.getLogger('server.main')
+
+
+# def decorator_logger(func):
+#     SERVER_LOGGER.info(f'Loading {func.__name__}')
+#     return func
+
+def decorator_logger(func):
+    def wrapper(*args,**kwargs):
+        SERVER_LOGGER.info(f'Starting {func.__name__}')
+        res = func(*args, **kwargs)
+        SERVER_LOGGER.info(f'End {func.__name__}')
+        return res
+    return wrapper
 
 """
 1. Реализовать простое клиент-серверное взаимодействие по протоколу JIM (JSON instant messaging):
@@ -30,9 +47,9 @@ port — tcp-порт на сервере, по умолчанию 7777.
 
 """Программа-сервер"""
 
-
+@decorator_logger
 def check_account(account_name, account_pass):
-
+    SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
     valid_accounts = [{'user_name': 'Guest', 'user_password': None},
                       {'user_name': 'C0deMaver1ck','user_password': 'CorrectHorseBatteryStaple'}]
 
@@ -46,9 +63,9 @@ def check_account(account_name, account_pass):
 
     return 'Invalid Account'
 
-
+@decorator_logger
 def check_msg_has_required_fields(msg):
-
+    SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
     required_keys = [ACTION, TIME, USER]
 
     msg_format_valid = True
@@ -61,6 +78,7 @@ def check_msg_has_required_fields(msg):
 
     return msg_format_valid
 
+@decorator_logger
 def process_client_message(message):
     """
     Обработчик сообщений от клиентов, принимает словарь -
@@ -74,99 +92,64 @@ def process_client_message(message):
     # probably need to create a separate function to check message
     # for presence of required fields
     if check_msg_has_required_fields(message):
+        SERVER_LOGGER.warning(f'Получено сообщение: {message}')
         if message[ACTION] in ['presence', 'authenticate']:
             pass
         else:
+            SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
             return {RESPONSE: 400, ERROR: 'Bad Request'}
     else:
+        SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
         return {RESPONSE: 400, ERROR: 'Bad Request'}
 
     if message[ACTION] == PRESENCE:
+        SERVER_LOGGER.info(f'Тип Сообщения - присутствие клиента: {message[USER][ACCOUNT_NAME]}')
         if message[USER][ACCOUNT_NAME] == 'Guest':
+            SERVER_LOGGER.info(f'Сообщение о присутствии клиента {message[USER][ACCOUNT_NAME]} подтверждено.')
             return {RESPONSE: 200,
                     ERROR: 'OK'}
         else:
+            SERVER_LOGGER.warning(f'Клиент {message[USER][ACCOUNT_NAME]} должен подтвердить личность.')
             return {RESPONSE: 401,
                     ERROR: 'Authentication Required'}
 
     if message[ACTION] == 'authenticate' and ACCOUNT_AUTH_STRING in message[USER].keys():
+        SERVER_LOGGER.info(f'Тип Сообщения - аутентификация клиента: {message[USER][ACCOUNT_NAME]}')
         if check_account(message[USER][ACCOUNT_NAME], message[USER][ACCOUNT_AUTH_STRING]):
+            SERVER_LOGGER.info(f'Аутентификация клиента: {message[USER][ACCOUNT_NAME]}, прошла успешно')
             return {RESPONSE: 200,
                 ERROR: 'Authenticated'}
         else:
+            SERVER_LOGGER.warning(f'Неудачная попытка аутентификации клиента: {message[USER][ACCOUNT_NAME]}')
             return {
                 RESPONSE: 402,
                 ERROR: 'Wrong credentials'
             }
 
 
-def main(*argv):
+def main():
     """
     Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
     Сначала обрабатываем порт:
     server.py -p 8079 -a 192.168.1.2
     :return:
     """
-    # try:
-    #     opts, args = getopt.getopt(argv, "p:a:")
-    # except getopt.GetoptError:
-    #     print(f'Starting with defaults -p {DEFAULT_PORT} -a {DEFAULT_IP_ADDRESS}')
-    # else:
-    #     for opt, arg in opts:
-    #         if opt == "-p":
-    #             listen_port = arg
-    #         elif opt == "-a":
-    #             listen_address = arg
-    # listen_address = DEFAULT_IP_ADDRESS
-    # listen_port = DEFAULT_PORT
 
     parser = argparse.ArgumentParser(description='Bind to some socket.')
-    parser.add_argument('-p', default=DEFAULT_PORT, type=int)
     parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, type=str)
+    parser.add_argument('-p', default=DEFAULT_PORT, type=int)
 
     listen_port = (parser.parse_args()).p
-    print(listen_port)
     listen_address = (parser.parse_args()).a
-    print(listen_address)
-
-    # listen_address = parser.parse_args(['-a'])
-    # print(listen_address)
-    # try:
-    #     if '-p' in sys.argv:
-    #         listen_port = int(sys.argv[sys.argv.index('-p') + 1])
-    #     else:
-    #         listen_port = DEFAULT_PORT
-    #     if listen_port < 1024 or listen_port > 65535:
-    #         raise ValueError
-    # except IndexError:
-    #     print('После параметра -\'p\' необходимо указать номер порта.')
-    #     sys.exit(1)
-    # except ValueError:
-    #     print(
-    #         'В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
-    #     sys.exit(1)
-    #
-    # # Затем загружаем какой адрес слушать
-    #
-    # try:
-    #     if '-a' in sys.argv:
-    #         listen_address = sys.argv[sys.argv.index('-a') + 1]
-    #     else:
-    #         listen_address = DEFAULT_IP_ADDRESS
-    #
-    # except IndexError:
-    #     print(
-    #         'После параметра \'a\'- необходимо указать адрес, который будет слушать сервер.')
-    #     sys.exit(1)
 
     # Готовим сокет
-
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # transport.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    transport.bind((listen_address, listen_port))
-
-    # Слушаем порт
+    try:
+        transport.bind((listen_address, listen_port))
+        SERVER_LOGGER.info(f'Сервер запущен на: {listen_address}:{listen_port}')
+    except OSError:
+        SERVER_LOGGER.critical(f'Не удалось запустить сервер на: {listen_address}:{listen_port}')
 
     transport.listen(MAX_CONNECTIONS)
 
@@ -176,17 +159,14 @@ def main(*argv):
 
         try:
             message_from_cient = get_message(client)
-            print(message_from_cient)
+            # SERVER_LOGGER.info(f'Сообщение от клиента : {client_address}: {message_from_cient}')
             # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
             response = process_client_message(message_from_cient)
             send_message(client, response)
-
-            """
-            If we want to continue to deal with clients we have to keep socket (communication endpoint) open
-            """
+            SERVER_LOGGER.info(f'Обработка сообщения: SRC: {client_address} REQ: {message_from_cient} RESP: {response}')
             client.close()
         except (ValueError, json.JSONDecodeError):
-            print('Принято некорретное сообщение от клиента.')
+            SERVER_LOGGER.error(f'Получено некорректное сообщение SRC: {client_address} REQ: {message_from_cient}')
             client.close()
 
 

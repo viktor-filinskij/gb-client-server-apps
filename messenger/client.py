@@ -22,7 +22,8 @@ import json
 import socket
 import time
 import argparse
-
+import logging
+import log.client_log_config
 
 from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME,\
     ACCOUNT_AUTH_STRING, TYPE, \
@@ -30,6 +31,19 @@ from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME,\
 from lib.utils import get_message, send_message
 
 
+CLIENT_LOGGER = logging.getLogger('client.main')
+
+
+def decorator_logger(func):
+    def wrapper(*args,**kwargs):
+        CLIENT_LOGGER.info(f'Starting {func.__name__}')
+        res = func(*args, **kwargs)
+        CLIENT_LOGGER.info(f'End {func.__name__}')
+        return res
+    return wrapper
+
+
+@decorator_logger
 def create_presence(account_name='Guest'):
     """
     Функция генерирует запрос о присутствии клиента
@@ -37,6 +51,7 @@ def create_presence(account_name='Guest'):
     :return:
     """
     # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
+    CLIENT_LOGGER.info(f'Запрос о присутствии клиента: {account_name}')
     out = {
         ACTION: PRESENCE,
         TIME: time.time(),
@@ -49,6 +64,7 @@ def create_presence(account_name='Guest'):
     return out
 
 
+@decorator_logger
 def authenticate(account_name, account_auth_string):
     """
     Function that performs authentication against server
@@ -56,6 +72,7 @@ def authenticate(account_name, account_auth_string):
     :param account_auth_string:
     :return:
     """
+    CLIENT_LOGGER.info(f'Аутентификация клиента {account_name} на сервере.')
     out = {
         ACTION: 'authenticate',
         TIME: time.time(),
@@ -66,13 +83,14 @@ def authenticate(account_name, account_auth_string):
     }
     return out
 
-
+@decorator_logger
 def process_ans(message):
     """
     Функция разбирает ответ сервера
     :param message:
     :return:
     """
+    CLIENT_LOGGER.info(f'Разбор сообщения от сервера: {message}')
     if RESPONSE in message:
         # if message[RESPONSE] == 200:
         #     if message[ERROR]:
@@ -97,7 +115,8 @@ def main():
         server_address = DEFAULT_IP_ADDRESS
         server_port = DEFAULT_PORT
     except ValueError:
-        print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
+        CLIENT_LOGGER.critical(f'В качестве порта может быть указано только число в диапазоне от 1024 до 65535')
+        # print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
         sys.exit(1)
 
     # parser = argparse.ArgumentParser(description='Bind to some socket.')
@@ -125,10 +144,12 @@ def main():
     send_message(transport, message_to_server)
     try:
         answer = process_ans(get_message(transport))
-        print(answer)
-        print(type(answer))
+        CLIENT_LOGGER.info(f'Ответ от сервера: {answer}')
+        # print(answer)
+        # print(type(answer))
     except (ValueError, json.JSONDecodeError):
-        print('Не удалось декодировать сообщение сервера.')
+        # print('Не удалось декодировать сообщение сервера.')
+        CLIENT_LOGGER.error(f'Не удалось декодировать сообщение сервера')
 
     # message_to_server = create_presence('C0deMaver1ck')
     # send_message(transport, message_to_server)
@@ -152,7 +173,6 @@ def main():
     #         print(type(answer))
     #     except (ValueError, json.JSONDecodeError):
     #         print('Не удалось декодировать сообщение сервера.')
-
 
 
 if __name__ == '__main__':
