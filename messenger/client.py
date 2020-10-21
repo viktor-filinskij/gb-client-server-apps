@@ -21,7 +21,6 @@ import sys
 import json
 import socket
 import time
-import argparse
 import logging
 import log.client_log_config
 
@@ -34,16 +33,16 @@ from lib.utils import get_message, send_message
 CLIENT_LOGGER = logging.getLogger('client.main')
 
 
-def decorator_logger(func):
+def log(func):
     def wrapper(*args,**kwargs):
-        CLIENT_LOGGER.info(f'Starting {func.__name__}')
+        CLIENT_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
         res = func(*args, **kwargs)
-        CLIENT_LOGGER.info(f'End {func.__name__}')
+        CLIENT_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
         return res
     return wrapper
 
 
-@decorator_logger
+@log
 def create_presence(account_name='Guest'):
     """
     Функция генерирует запрос о присутствии клиента
@@ -64,7 +63,7 @@ def create_presence(account_name='Guest'):
     return out
 
 
-@decorator_logger
+@log
 def authenticate(account_name, account_auth_string):
     """
     Function that performs authentication against server
@@ -83,7 +82,7 @@ def authenticate(account_name, account_auth_string):
     }
     return out
 
-@decorator_logger
+@log
 def process_ans(message):
     """
     Функция разбирает ответ сервера
@@ -118,6 +117,8 @@ def main():
         CLIENT_LOGGER.critical(f'В качестве порта может быть указано только число в диапазоне от 1024 до 65535')
         # print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
         sys.exit(1)
+    except ConnectionRefusedError:
+        CLIENT_LOGGER.critical(f'Не удалось подключиться к серверу')
 
     # parser = argparse.ArgumentParser(description='Bind to some socket.')
     # parser.add_argument('-p', default=DEFAULT_PORT, type=int)
@@ -161,6 +162,7 @@ def main():
     #     print(answer)
     #     print(type(answer))
     # except (ValueError, json.JSONDecodeError):
+    #     CLIENT_LOGGER.crit(f'Не удалось декодировать сообщение сервера')
     #     print('Не удалось декодировать сообщение сервера.')
 
     # if '401' in answer:
@@ -172,6 +174,7 @@ def main():
     #         print(answer)
     #         print(type(answer))
     #     except (ValueError, json.JSONDecodeError):
+    #         CLIENT_LOGGER.crit(f'Не удалось декодировать сообщение сервера')
     #         print('Не удалось декодировать сообщение сервера.')
 
 

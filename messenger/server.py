@@ -24,11 +24,11 @@ SERVER_LOGGER = logging.getLogger('server.main')
 #     SERVER_LOGGER.info(f'Loading {func.__name__}')
 #     return func
 
-def decorator_logger(func):
+def log(func):
     def wrapper(*args,**kwargs):
-        SERVER_LOGGER.info(f'Starting {func.__name__}')
+        SERVER_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
         res = func(*args, **kwargs)
-        SERVER_LOGGER.info(f'End {func.__name__}')
+        SERVER_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
         return res
     return wrapper
 
@@ -47,7 +47,7 @@ port — tcp-порт на сервере, по умолчанию 7777.
 
 """Программа-сервер"""
 
-@decorator_logger
+@log
 def check_account(account_name, account_pass):
     SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
     valid_accounts = [{'user_name': 'Guest', 'user_password': None},
@@ -63,7 +63,7 @@ def check_account(account_name, account_pass):
 
     return 'Invalid Account'
 
-@decorator_logger
+@log
 def check_msg_has_required_fields(msg):
     SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
     required_keys = [ACTION, TIME, USER]
@@ -78,7 +78,7 @@ def check_msg_has_required_fields(msg):
 
     return msg_format_valid
 
-@decorator_logger
+@log
 def process_client_message(message):
     """
     Обработчик сообщений от клиентов, принимает словарь -
