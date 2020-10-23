@@ -34,16 +34,16 @@ from lib.utils import get_message, send_message
 CLIENT_LOGGER = logging.getLogger('client.main')
 
 
-def decorator_logger(func):
+def log(func):
     def wrapper(*args,**kwargs):
-        CLIENT_LOGGER.info(f'Starting {func.__name__}')
+        CLIENT_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
         res = func(*args, **kwargs)
-        CLIENT_LOGGER.info(f'End {func.__name__}')
+        CLIENT_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
         return res
     return wrapper
 
 
-@decorator_logger
+@log
 def create_presence(account_name='Guest'):
     """
     Функция генерирует запрос о присутствии клиента
@@ -64,7 +64,7 @@ def create_presence(account_name='Guest'):
     return out
 
 
-@decorator_logger
+@log
 def authenticate(account_name, account_auth_string):
     """
     Function that performs authentication against server
@@ -83,7 +83,7 @@ def authenticate(account_name, account_auth_string):
     }
     return out
 
-@decorator_logger
+@log
 def process_ans(message):
     """
     Функция разбирает ответ сервера
@@ -139,10 +139,11 @@ def main():
     As guest we can announce our presence, because no auth as guest required
     As registered user we, will get 401 error and will have to authenticate.  
     """
-
+    CLIENT_LOGGER.info(f'Вызваeм ф-цию: create_presence() из ф-ции main()')
     message_to_server = create_presence()
     send_message(transport, message_to_server)
     try:
+        CLIENT_LOGGER.info(f'Вызваeм ф-цию: process_ans() из ф-ции main()')
         answer = process_ans(get_message(transport))
         CLIENT_LOGGER.info(f'Ответ от сервера: {answer}')
         # print(answer)
