@@ -8,6 +8,7 @@ import socket
 import argparse
 import json
 import logging
+import inspect
 import log.server_log_config
 
 
@@ -24,11 +25,13 @@ SERVER_LOGGER = logging.getLogger('server.main')
 #     SERVER_LOGGER.info(f'Loading {func.__name__}')
 #     return func
 
-def decorator_logger(func):
+def log(func):
+    # called_from = inspect.stack()[1]
+    # SERVER_LOGGER.info(f'Function {__name__} called from function {called_from.function}')
     def wrapper(*args,**kwargs):
-        SERVER_LOGGER.info(f'Starting {func.__name__}')
+        SERVER_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
         res = func(*args, **kwargs)
-        SERVER_LOGGER.info(f'End {func.__name__}')
+        SERVER_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
         return res
     return wrapper
 
@@ -47,7 +50,7 @@ port — tcp-порт на сервере, по умолчанию 7777.
 
 """Программа-сервер"""
 
-@decorator_logger
+@log
 def check_account(account_name, account_pass):
     SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
     valid_accounts = [{'user_name': 'Guest', 'user_password': None},
@@ -63,7 +66,7 @@ def check_account(account_name, account_pass):
 
     return 'Invalid Account'
 
-@decorator_logger
+@log
 def check_msg_has_required_fields(msg):
     SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
     required_keys = [ACTION, TIME, USER]
@@ -78,7 +81,7 @@ def check_msg_has_required_fields(msg):
 
     return msg_format_valid
 
-@decorator_logger
+@log
 def process_client_message(message):
     """
     Обработчик сообщений от клиентов, принимает словарь -
@@ -158,9 +161,11 @@ def main():
         client, client_address = transport.accept()
 
         try:
+            SERVER_LOGGER.info(f'Вызваeм ф-цию: get_message() из ф-ции main()')
             message_from_cient = get_message(client)
             # SERVER_LOGGER.info(f'Сообщение от клиента : {client_address}: {message_from_cient}')
             # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
+            SERVER_LOGGER.info(f'Вызваeм ф-цию: process_client_message() из ф-ции main()')
             response = process_client_message(message_from_cient)
             send_message(client, response)
             SERVER_LOGGER.info(f'Обработка сообщения: SRC: {client_address} REQ: {message_from_cient} RESP: {response}')
