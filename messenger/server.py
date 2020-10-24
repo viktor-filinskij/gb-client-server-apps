@@ -56,7 +56,7 @@ port — tcp-порт на сервере, по умолчанию 7777.
 
 @log
 def check_account(account_name, account_pass):
-    SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
+    # SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
     valid_accounts = [{'user_name': 'Guest', 'user_password': None},
                       {'user_name': 'C0deMaver1ck','user_password': 'CorrectHorseBatteryStaple'}]
 
@@ -72,7 +72,7 @@ def check_account(account_name, account_pass):
 
 @log
 def check_msg_has_required_fields(msg):
-    SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
+    # SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
     required_keys = [ACTION, TIME, USER]
 
     msg_format_valid = True
@@ -99,35 +99,35 @@ def process_client_message(message):
     # probably need to create a separate function to check message
     # for presence of required fields
     if check_msg_has_required_fields(message):
-        SERVER_LOGGER.warning(f'Получено сообщение: {message}')
+        # SERVER_LOGGER.warning(f'Получено сообщение: {message}')
         if message[ACTION] in ['presence', 'authenticate']:
             pass
         else:
             SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
             return {RESPONSE: 400, ERROR: 'Bad Request'}
     else:
-        SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
+        # SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
         return {RESPONSE: 400, ERROR: 'Bad Request'}
 
     if message[ACTION] == PRESENCE:
-        SERVER_LOGGER.info(f'Тип Сообщения - присутствие клиента: {message[USER][ACCOUNT_NAME]}')
+        # SERVER_LOGGER.info(f'Тип Сообщения - присутствие клиента: {message[USER][ACCOUNT_NAME]}')
         if message[USER][ACCOUNT_NAME] == 'Guest':
-            SERVER_LOGGER.info(f'Сообщение о присутствии клиента {message[USER][ACCOUNT_NAME]} подтверждено.')
+            # SERVER_LOGGER.info(f'Сообщение о присутствии клиента {message[USER][ACCOUNT_NAME]} подтверждено.')
             return {RESPONSE: 200,
                     ERROR: 'OK'}
         else:
-            SERVER_LOGGER.warning(f'Клиент {message[USER][ACCOUNT_NAME]} должен подтвердить личность.')
+            # SERVER_LOGGER.warning(f'Клиент {message[USER][ACCOUNT_NAME]} должен подтвердить личность.')
             return {RESPONSE: 401,
                     ERROR: 'Authentication Required'}
 
     if message[ACTION] == 'authenticate' and ACCOUNT_AUTH_STRING in message[USER].keys():
-        SERVER_LOGGER.info(f'Тип Сообщения - аутентификация клиента: {message[USER][ACCOUNT_NAME]}')
+        # SERVER_LOGGER.info(f'Тип Сообщения - аутентификация клиента: {message[USER][ACCOUNT_NAME]}')
         if check_account(message[USER][ACCOUNT_NAME], message[USER][ACCOUNT_AUTH_STRING]):
-            SERVER_LOGGER.info(f'Аутентификация клиента: {message[USER][ACCOUNT_NAME]}, прошла успешно')
+            # SERVER_LOGGER.info(f'Аутентификация клиента: {message[USER][ACCOUNT_NAME]}, прошла успешно')
             return {RESPONSE: 200,
                 ERROR: 'Authenticated'}
         else:
-            SERVER_LOGGER.warning(f'Неудачная попытка аутентификации клиента: {message[USER][ACCOUNT_NAME]}')
+            # SERVER_LOGGER.warning(f'Неудачная попытка аутентификации клиента: {message[USER][ACCOUNT_NAME]}')
             return {
                 RESPONSE: 402,
                 ERROR: 'Wrong credentials'
@@ -165,14 +165,14 @@ def main():
         client, client_address = transport.accept()
 
         try:
-            SERVER_LOGGER.info(f'Вызваeм ф-цию: get_message() из ф-ции main()')
+            # SERVER_LOGGER.info(f'Вызваeм ф-цию: get_message() из ф-ции main()')
             message_from_cient = get_message(client)
             # SERVER_LOGGER.info(f'Сообщение от клиента : {client_address}: {message_from_cient}')
             # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
-            SERVER_LOGGER.info(f'Вызваeм ф-цию: process_client_message() из ф-ции main()')
+            # SERVER_LOGGER.info(f'Вызваeм ф-цию: process_client_message() из ф-ции main()')
             response = process_client_message(message_from_cient)
             send_message(client, response)
-            SERVER_LOGGER.info(f'Обработка сообщения: SRC: {client_address} REQ: {message_from_cient} RESP: {response}')
+            # SERVER_LOGGER.info(f'Обработка сообщения: SRC: {client_address} REQ: {message_from_cient} RESP: {response}')
             client.close()
         except (ValueError, json.JSONDecodeError):
             SERVER_LOGGER.error(f'Получено некорректное сообщение SRC: {client_address} REQ: {message_from_cient}')

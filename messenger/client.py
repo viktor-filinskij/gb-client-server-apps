@@ -56,7 +56,7 @@ def create_presence(account_name='Guest'):
     :return:
     """
     # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
-    CLIENT_LOGGER.info(f'Запрос о присутствии клиента: {account_name}')
+    # CLIENT_LOGGER.info(f'Запрос о присутствии клиента: {account_name}')
     out = {
         ACTION: PRESENCE,
         TIME: time.time(),
@@ -95,7 +95,7 @@ def process_ans(message):
     :param message:
     :return:
     """
-    CLIENT_LOGGER.info(f'Разбор сообщения от сервера: {message}')
+    # CLIENT_LOGGER.info(f'Разбор сообщения от сервера: {message}')
     if RESPONSE in message:
         # if message[RESPONSE] == 200:
         #     if message[ERROR]:
@@ -144,13 +144,13 @@ def main():
     As guest we can announce our presence, because no auth as guest required
     As registered user we, will get 401 error and will have to authenticate.  
     """
-    CLIENT_LOGGER.info(f'Вызваeм ф-цию: create_presence() из ф-ции main()')
+    # CLIENT_LOGGER.info(f'Вызваeм ф-цию: create_presence() из ф-ции main()')
     message_to_server = create_presence()
     send_message(transport, message_to_server)
     try:
-        CLIENT_LOGGER.info(f'Вызваeм ф-цию: process_ans() из ф-ции main()')
+        # CLIENT_LOGGER.info(f'Вызваeм ф-цию: process_ans() из ф-ции main()')
         answer = process_ans(get_message(transport))
-        CLIENT_LOGGER.info(f'Ответ от сервера: {answer}')
+        # CLIENT_LOGGER.info(f'Ответ от сервера: {answer}')
         # print(answer)
         # print(type(answer))
     except (ValueError, json.JSONDecodeError):
