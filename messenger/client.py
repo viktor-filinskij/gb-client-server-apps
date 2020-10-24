@@ -17,30 +17,35 @@ port — tcp-порт на сервере, по умолчанию 7777.
 
 """Программа-клиент"""
 
+import os
 import sys
 import json
 import socket
 import time
-import argparse
 import logging
 import log.client_log_config
+
+
+sys.path.append(os.path.join(os.getcwd(), '..'))
+
 
 from lib.constants import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME,\
     ACCOUNT_AUTH_STRING, TYPE, \
     RESPONSE, ERROR, DEFAULT_IP_ADDRESS, DEFAULT_PORT
 from lib.utils import get_message, send_message
+from log.decorator_log import log
 
 
 CLIENT_LOGGER = logging.getLogger('client.main')
 
 
-def log(func):
-    def wrapper(*args,**kwargs):
-        CLIENT_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
-        res = func(*args, **kwargs)
-        CLIENT_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
-        return res
-    return wrapper
+# def log(func):
+#     def wrapper(*args,**kwargs):
+#         CLIENT_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
+#         res = func(*args, **kwargs)
+#         CLIENT_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
+#         return res
+#     return wrapper
 
 
 @log

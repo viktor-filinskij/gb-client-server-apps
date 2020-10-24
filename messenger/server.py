@@ -2,6 +2,8 @@
 __author__ = 'Viktor Filinskij'
 
 
+import os
+import sys
 import socket
 # import sys
 # import getopt
@@ -11,11 +13,13 @@ import logging
 import inspect
 import log.server_log_config
 
+sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOUNT_AUTH_STRING, \
     PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, DEFAULT_IP_ADDRESS
 
 from lib.utils import get_message, send_message
+from log.decorator_log import log
 
 
 SERVER_LOGGER = logging.getLogger('server.main')
@@ -25,15 +29,15 @@ SERVER_LOGGER = logging.getLogger('server.main')
 #     SERVER_LOGGER.info(f'Loading {func.__name__}')
 #     return func
 
-def log(func):
-    # called_from = inspect.stack()[1]
-    # SERVER_LOGGER.info(f'Function {__name__} called from function {called_from.function}')
-    def wrapper(*args,**kwargs):
-        SERVER_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
-        res = func(*args, **kwargs)
-        SERVER_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
-        return res
-    return wrapper
+# def log(func):
+#     # called_from = inspect.stack()[1]
+#     # SERVER_LOGGER.info(f'Function {__name__} called from function {called_from.function}')
+#     def wrapper(*args,**kwargs):
+#         SERVER_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
+#         res = func(*args, **kwargs)
+#         SERVER_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
+#         return res
+#     return wrapper
 
 """
 1. Реализовать простое клиент-серверное взаимодействие по протоколу JIM (JSON instant messaging):
