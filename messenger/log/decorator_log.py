@@ -41,7 +41,12 @@ def log(func_to_log):
         # LOGGER.debug(f'Была вызвана функция {func_to_log.__name__} c параметрами {args}, {kwargs}. '
         #              f'Вызов из модуля {func_to_log.__module__}. Вызов из'
         #              f'ф-ии {traceback.format_stack()[0].strip().split()[-1]}.'
-        #              f'Вызов из ф-ии {inspect.stack()[1][3]}', stacklevel=2)
+        #              f'Вызов из ф-ии {inspect.stack()[1][3]}')
+        """
+        stacklevel=2, which allows us to know,
+        from which module we've called func_to_log, 
+        works starting from python3.8+
+        """
         LOGGER.debug(f'Была вызвана функция {func_to_log.__name__} '
                      f'c параметрами {args}, {kwargs}. ', stacklevel=2)
         return ret
