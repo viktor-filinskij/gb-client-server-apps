@@ -3,10 +3,15 @@ __author__ = 'Viktor Filinskij'
 
 
 import json
+import sys
 
 from lib.constants import MAX_PACKAGE_LENGTH, ENCODING
+from log.decorator_log import log
+
+sys.path.append('../')
 
 
+@log
 def get_message(client):
     '''
     Утилита приёма и декодирования сообщения
@@ -21,11 +26,13 @@ def get_message(client):
         json_response = encoded_response.decode(ENCODING)
         response = json.loads(json_response)
         if isinstance(response, dict):
+            # print(response)
             return response
-        raise ValueError
-    raise ValueError
+        raise IncorrectDataRecivedError
+    raise IncorrectDataRecivedError
 
 
+@log
 def send_message(sock, message):
     '''
     Утилита кодирования и отправки сообщения

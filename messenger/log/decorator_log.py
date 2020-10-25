@@ -31,7 +31,8 @@ else:
     # ну, раз не сервер, то клиент
     LOGGER = logging.getLogger('client.main')
 
-print(LOGGER.name)
+# print(f'Logging with logger {LOGGER.name}')
+
 
 def log(func_to_log):
     """Функция-декоратор"""

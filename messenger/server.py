@@ -5,18 +5,21 @@ __author__ = 'Viktor Filinskij'
 import os
 import sys
 import socket
+import select
 # import sys
 # import getopt
 import argparse
 import json
 import logging
-import inspect
+import time
+# import inspect
 import log.server_log_config
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
 from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOUNT_AUTH_STRING, \
-    PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, DEFAULT_IP_ADDRESS
+    PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, DEFAULT_IP_ADDRESS, \
+    SENDER, MESSAGE, MESSAGE_TEXT
 
 from lib.utils import get_message, send_message
 from log.decorator_log import log
@@ -55,128 +58,122 @@ port — tcp-порт на сервере, по умолчанию 7777.
 """Программа-сервер"""
 
 @log
-def check_account(account_name, account_pass):
-    # SERVER_LOGGER.info(f'Проверка валидности клиента: {account_name}')
-    valid_accounts = [{'user_name': 'Guest', 'user_password': None},
-                      {'user_name': 'C0deMaver1ck','user_password': 'CorrectHorseBatteryStaple'}]
-
-    for record in valid_accounts:
-        # print(record)
-        # for user_name, user_password in record.values():
-            # print(user_name, user_password)
-            # if account_name == user_name and account_pass == user_password:
-        if account_name == record.get('user_name') and account_pass == record.get('user_password'):
-            return True
-
-    return 'Invalid Account'
-
-@log
-def check_msg_has_required_fields(msg):
-    # SERVER_LOGGER.info(f'Проверка корректного формата сообщения от клиента: {msg}')
-    required_keys = [ACTION, TIME, USER]
-
-    msg_format_valid = True
-
-    for key in required_keys:
-        if key in msg.keys():
-            pass
-        else:
-            msg_format_valid = False
-
-    return msg_format_valid
-
-@log
-def process_client_message(message):
+def process_client_message(message, messages_list, client):
     """
-    Обработчик сообщений от клиентов, принимает словарь -
-    сообщение от клинта, проверяет корректность,
-    возвращает словарь-ответ для клиента
-
+    Обработчик сообщений от клиентов, принимает словарь - сообщение от клинта,
+    проверяет корректность, отправляет словарь-ответ для клиента с результатом приёма.
     :param message:
+    :param messages_list:
+    :param client:
     :return:
     """
-
-    # probably need to create a separate function to check message
-    # for presence of required fields
-    if check_msg_has_required_fields(message):
-        # SERVER_LOGGER.warning(f'Получено сообщение: {message}')
-        if message[ACTION] in ['presence', 'authenticate']:
-            pass
-        else:
-            SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
-            return {RESPONSE: 400, ERROR: 'Bad Request'}
+    SERVER_LOGGER.debug(f'Разбор сообщения от клиента : {message}')
+    # Если это сообщение о присутствии, принимаем и отвечаем, если успех
+    if ACTION in message and message[ACTION] == PRESENCE and TIME in message \
+            and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
+        send_message(client, {RESPONSE: 200})
+        return
+    # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
+    elif ACTION in message and message[ACTION] == MESSAGE and \
+            TIME in message and MESSAGE_TEXT in message:
+        messages_list.append((message[ACCOUNT_NAME], message[MESSAGE_TEXT]))
+        return
+    # Иначе отдаём Bad request
     else:
-        # SERVER_LOGGER.warning(f'Не корректный формат сообщения: {message}')
-        return {RESPONSE: 400, ERROR: 'Bad Request'}
+        send_message(client, {
+            RESPONSE: 400,
+            ERROR: 'Bad Request'
+        })
+        return
 
-    if message[ACTION] == PRESENCE:
-        # SERVER_LOGGER.info(f'Тип Сообщения - присутствие клиента: {message[USER][ACCOUNT_NAME]}')
-        if message[USER][ACCOUNT_NAME] == 'Guest':
-            # SERVER_LOGGER.info(f'Сообщение о присутствии клиента {message[USER][ACCOUNT_NAME]} подтверждено.')
-            return {RESPONSE: 200,
-                    ERROR: 'OK'}
-        else:
-            # SERVER_LOGGER.warning(f'Клиент {message[USER][ACCOUNT_NAME]} должен подтвердить личность.')
-            return {RESPONSE: 401,
-                    ERROR: 'Authentication Required'}
 
-    if message[ACTION] == 'authenticate' and ACCOUNT_AUTH_STRING in message[USER].keys():
-        # SERVER_LOGGER.info(f'Тип Сообщения - аутентификация клиента: {message[USER][ACCOUNT_NAME]}')
-        if check_account(message[USER][ACCOUNT_NAME], message[USER][ACCOUNT_AUTH_STRING]):
-            # SERVER_LOGGER.info(f'Аутентификация клиента: {message[USER][ACCOUNT_NAME]}, прошла успешно')
-            return {RESPONSE: 200,
-                ERROR: 'Authenticated'}
-        else:
-            # SERVER_LOGGER.warning(f'Неудачная попытка аутентификации клиента: {message[USER][ACCOUNT_NAME]}')
-            return {
-                RESPONSE: 402,
-                ERROR: 'Wrong credentials'
-            }
+@log
+def arg_parser():
+    """Парсер аргументов коммандной строки"""
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', default=DEFAULT_PORT, type=int, nargs='?')
+    parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, nargs='?')
+    namespace = parser.parse_args(sys.argv[1:])
+    listen_address = namespace.a
+    listen_port = namespace.p
+
+    # проверка получения корретного номера порта для работы сервера.
+    if not 1023 < listen_port < 65536:
+        SERVER_LOGGER.critical(
+            f'Попытка запуска сервера с указанием неподходящего порта '
+            f'{listen_port}. Допустимы адреса с 1024 до 65535.')
+        sys.exit(1)
+
+    return listen_address, listen_port
 
 
 def main():
-    """
-    Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию.
-    Сначала обрабатываем порт:
-    server.py -p 8079 -a 192.168.1.2
-    :return:
-    """
+    """Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию"""
+    listen_address, listen_port = arg_parser()
 
-    parser = argparse.ArgumentParser(description='Bind to some socket.')
-    parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, type=str)
-    parser.add_argument('-p', default=DEFAULT_PORT, type=int)
-
-    listen_port = (parser.parse_args()).p
-    listen_address = (parser.parse_args()).a
+    SERVER_LOGGER.info(
+        f'Запущен сервер, порт для подключений: {listen_port}, '
+        f'адрес на который принимаются подключения: {listen_address}. ')
 
     # Готовим сокет
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    transport.bind((listen_address, listen_port))
+    transport.settimeout(0.5)
 
-    try:
-        transport.bind((listen_address, listen_port))
-        SERVER_LOGGER.info(f'Сервер запущен на: {listen_address}:{listen_port}')
-    except OSError:
-        SERVER_LOGGER.critical(f'Не удалось запустить сервер на: {listen_address}:{listen_port}')
+    # список клиентов , очередь сообщений
+    clients = []
+    messages = []
 
+    # Слушаем порт
     transport.listen(MAX_CONNECTIONS)
-
+    # Основной цикл программы сервера
     while True:
-
-        client, client_address = transport.accept()
-
+        # Ждём подключения, если таймаут вышел, ловим исключение.
         try:
-            # SERVER_LOGGER.info(f'Вызваeм ф-цию: get_message() из ф-ции main()')
-            message_from_cient = get_message(client)
-            # SERVER_LOGGER.info(f'Сообщение от клиента : {client_address}: {message_from_cient}')
-            # {'action': 'presence', 'time': 1573760672.167031, 'user': {'account_name': 'Guest'}}
-            # SERVER_LOGGER.info(f'Вызваeм ф-цию: process_client_message() из ф-ции main()')
-            response = process_client_message(message_from_cient)
-            send_message(client, response)
-            # SERVER_LOGGER.info(f'Обработка сообщения: SRC: {client_address} REQ: {message_from_cient} RESP: {response}')
-            client.close()
-        except (ValueError, json.JSONDecodeError):
-            SERVER_LOGGER.error(f'Получено некорректное сообщение SRC: {client_address} REQ: {message_from_cient}')
-            client.close()
+            client, client_address = transport.accept()
+        except OSError:
+            pass
+        else:
+            SERVER_LOGGER.info(f'Установлено соедение с ПК {client_address}')
+            clients.append(client)
+
+        recv_data_lst = []
+        send_data_lst = []
+        err_lst = []
+        # Проверяем на наличие ждущих клиентов
+        try:
+            if clients:
+                recv_data_lst, send_data_lst, err_lst = select.select(clients, clients, [], 0)
+        except OSError:
+            pass
+
+        # принимаем сообщения и если там есть сообщения,
+        # кладём в словарь, если ошибка, исключаем клиента.
+        if recv_data_lst:
+            for client_with_message in recv_data_lst:
+                try:
+                    process_client_message(get_message(client_with_message),
+                                           messages, client_with_message)
+                except:
+                    SERVER_LOGGER.info(f'Клиент {client_with_message.getpeername()} '
+                                f'отключился от сервера.')
+                    clients.remove(client_with_message)
+
+        # Если есть сообщения для отправки и ожидающие клиенты, отправляем им сообщение.
+        if messages and send_data_lst:
+            message = {
+                ACTION: MESSAGE,
+                SENDER: messages[0][0],
+                TIME: time.time(),
+                MESSAGE_TEXT: messages[0][1]
+            }
+            del messages[0]
+            for waiting_client in send_data_lst:
+                try:
+                    send_message(waiting_client, message)
+                except:
+                    SERVER_LOGGER.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
+                    clients.remove(waiting_client)
 
 
 if __name__ == '__main__':
