@@ -16,7 +16,6 @@ LOG = logging.getLogger('server.main')
 # Создаём объект форматирования:
 FORMATTER = logging.Formatter(f"%(asctime)s - %(levelname)s - %(filename)s - %(message)s ")
 
-
 PATH = os.path.dirname(os.path.abspath(__file__))
 PATH = os.path.join(PATH, 'client.log')
 
@@ -32,11 +31,14 @@ elif os.name == 'nt':
 # Создаём файловый обработчик логгирования (можно задать кодировку):
 FILE_HANDLER = TimedRotatingFileHandler(LOG_FILE, when='D', interval=1,
                                         backupCount='7', encoding='utf-8')
-#fh.setLevel(logging.DEBUG)
 FILE_HANDLER.setFormatter(FORMATTER)
-
 # Добавляем в логгер новый обработчик событий и устанавливаем уровень логгирования
+
+# STREAM_HANDLER = logging.StreamHandler()
+# STREAM_HANDLER.setFormatter(FORMATTER)
+
 LOG.addHandler(FILE_HANDLER)
+# LOG.addHandler(STREAM_HANDLER)
 LOG.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':

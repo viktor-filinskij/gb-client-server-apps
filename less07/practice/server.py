@@ -1,61 +1,20 @@
-#!/usr/bin/env python3
-__author__ = 'Viktor Filinskij'
-
-
-import os
-import sys
-import socket
-import select
-# import sys
-# import getopt
-import argparse
-import json
-import logging
-import time
-# import inspect
-import log.server_log_config
-
-sys.path.append(os.path.join(os.getcwd(), '..'))
-
-from lib.constants import ACTION, ACCOUNT_NAME, RESPONSE, MAX_CONNECTIONS, ACCOUNT_AUTH_STRING, \
-    PRESENCE, TIME, USER, ERROR, DEFAULT_PORT, DEFAULT_IP_ADDRESS, \
-    SENDER, MESSAGE, MESSAGE_TEXT
-
-from lib.utils import get_message, send_message
-from log.decorator_log import log
-
-
-SERVER_LOGGER = logging.getLogger('server.main')
-
-
-# def decorator_logger(func):
-#     SERVER_LOGGER.info(f'Loading {func.__name__}')
-#     return func
-
-# def log(func):
-#     # called_from = inspect.stack()[1]
-#     # SERVER_LOGGER.info(f'Function {__name__} called from function {called_from.function}')
-#     def wrapper(*args,**kwargs):
-#         SERVER_LOGGER.info(f'Starting {func.__name__}({args},{kwargs})')
-#         res = func(*args, **kwargs)
-#         SERVER_LOGGER.info(f'End {func.__name__}({args},{kwargs})')
-#         return res
-#     return wrapper
-
-"""
-1. Реализовать простое клиент-серверное взаимодействие по протоколу JIM (JSON instant messaging):
-клиент отправляет запрос серверу;
-сервер отвечает соответствующим кодом результата. Клиент и сервер должны быть реализованы в виде отдельных скриптов, 
-содержащих соответствующие функции. Функции клиента: сформировать presence-сообщение; 
-отправить сообщение серверу; получить ответ сервера; разобрать сообщение сервера; 
-параметры командной строки скрипта client.py <addr> [<port>]: addr — ip-адрес сервера; 
-port — tcp-порт на сервере, по умолчанию 7777. 
-Функции сервера: принимает сообщение клиента; формирует ответ клиенту; отправляет ответ клиенту; 
-имеет параметры командной строки: -p <port> — TCP-порт для работы (по умолчанию использует 7777);
--a <addr> — IP-адрес для прослушивания (по умолчанию слушает все доступные адреса).
-"""
-
 """Программа-сервер"""
+
+import socket
+import sys
+import argparse
+import logging
+import select
+import time
+import logs.config_server_log
+from common.variables import DEFAULT_PORT, MAX_CONNECTIONS, ACTION, TIME, USER, \
+    ACCOUNT_NAME, SENDER, PRESENCE, RESPONSE, ERROR, MESSAGE, MESSAGE_TEXT
+from common.utils import get_message, send_message
+from decos import log
+
+# Инициализация логирования сервера.
+LOGGER = logging.getLogger('server')
+
 
 @log
 def process_client_message(message, messages_list, client):
@@ -67,7 +26,7 @@ def process_client_message(message, messages_list, client):
     :param client:
     :return:
     """
-    SERVER_LOGGER.debug(f'Разбор сообщения от клиента : {message}')
+    LOGGER.debug(f'Разбор сообщения от клиента : {message}')
     # Если это сообщение о присутствии, принимаем и отвечаем, если успех
     if ACTION in message and message[ACTION] == PRESENCE and TIME in message \
             and USER in message and message[USER][ACCOUNT_NAME] == 'Guest':
@@ -92,14 +51,14 @@ def arg_parser():
     """Парсер аргументов коммандной строки"""
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', default=DEFAULT_PORT, type=int, nargs='?')
-    parser.add_argument('-a', default=DEFAULT_IP_ADDRESS, nargs='?')
+    parser.add_argument('-a', default='', nargs='?')
     namespace = parser.parse_args(sys.argv[1:])
     listen_address = namespace.a
     listen_port = namespace.p
 
     # проверка получения корретного номера порта для работы сервера.
     if not 1023 < listen_port < 65536:
-        SERVER_LOGGER.critical(
+        LOGGER.critical(
             f'Попытка запуска сервера с указанием неподходящего порта '
             f'{listen_port}. Допустимы адреса с 1024 до 65535.')
         sys.exit(1)
@@ -111,9 +70,10 @@ def main():
     """Загрузка параметров командной строки, если нет параметров, то задаём значения по умоланию"""
     listen_address, listen_port = arg_parser()
 
-    SERVER_LOGGER.info(
+    LOGGER.info(
         f'Запущен сервер, порт для подключений: {listen_port}, '
-        f'адрес на который принимаются подключения: {listen_address}. ')
+        f'адрес с которого принимаются подключения: {listen_address}. '
+        f'Если адрес не указан, принимаются соединения с любых адресов.')
 
     # Готовим сокет
     transport = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -134,7 +94,7 @@ def main():
         except OSError:
             pass
         else:
-            SERVER_LOGGER.info(f'Установлено соедение с ПК {client_address}')
+            LOGGER.info(f'Установлено соедение с ПК {client_address}')
             clients.append(client)
 
         recv_data_lst = []
@@ -155,7 +115,7 @@ def main():
                     process_client_message(get_message(client_with_message),
                                            messages, client_with_message)
                 except:
-                    SERVER_LOGGER.info(f'Клиент {client_with_message.getpeername()} '
+                    LOGGER.info(f'Клиент {client_with_message.getpeername()} '
                                 f'отключился от сервера.')
                     clients.remove(client_with_message)
 
@@ -172,7 +132,7 @@ def main():
                 try:
                     send_message(waiting_client, message)
                 except:
-                    SERVER_LOGGER.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
+                    LOGGER.info(f'Клиент {waiting_client.getpeername()} отключился от сервера.')
                     clients.remove(waiting_client)
 
 

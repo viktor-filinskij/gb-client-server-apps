@@ -27,12 +27,15 @@ elif os.name == 'nt':
 
 # Создаём файловый обработчик логгирования (можно задать кодировку):
 FILE_HANDLER = logging.FileHandler(LOG_FILE, encoding='utf-8')
-
-#fh.setLevel(logging.DEBUG)
 FILE_HANDLER.setFormatter(FORMATTER)
+
+# addidional console logger
+# STREAM_HANDLER = logging.StreamHandler()
+# STREAM_HANDLER.setFormatter(FORMATTER)
 
 # Добавляем в логгер новый обработчик событий и устанавливаем уровень логгирования
 LOG.addHandler(FILE_HANDLER)
+# LOG.addHandler(STREAM_HANDLER)
 LOG.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
