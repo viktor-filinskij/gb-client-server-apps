@@ -8,12 +8,11 @@ import os
 import logging
 import inspect
 import traceback
+import log.config_client_log
+import log.config_server_log
 
-sys.path.append(os.path.join(os.getcwd(), '..'))
 
-import log.client_log_config
-import log.server_log_config
-
+sys.path.append('../')
 
 # метод определения модуля, источника запуска.
 # Метод find () возвращает индекс первого вхождения искомой подстроки,
@@ -26,10 +25,10 @@ import log.server_log_config
 
 if sys.argv[0].find('client.py') == -1:
     # если не клиент то сервер!
-    LOGGER = logging.getLogger('server.main')
+    LOGGER = logging.getLogger('server')
 else:
     # ну, раз не сервер, то клиент
-    LOGGER = logging.getLogger('client.main')
+    LOGGER = logging.getLogger('client')
 
 # print(f'Logging with logger {LOGGER.name}')
 
@@ -52,11 +51,3 @@ def log(func_to_log):
                      f'c параметрами {args}, {kwargs}. ', stacklevel=2)
         return ret
     return log_saver
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()
